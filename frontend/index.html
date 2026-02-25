@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Builder</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='6' y='2' width='20' height='28' rx='2' fill='%2316213e' stroke='%23e94560' stroke-width='2'/><line x1='10' y1='9' x2='22' y2='9' stroke='%23e94560' stroke-width='2'/><line x1='10' y1='14' x2='22' y2='14' stroke='%23533483' stroke-width='1.5'/><line x1='10' y1='18' x2='20' y2='18' stroke='%23533483' stroke-width='1.5'/><line x1='10' y1='22' x2='18' y2='22' stroke='%23533483' stroke-width='1.5'/></svg>">
+    <link rel="stylesheet" href="/static/css/styles.css?v=8">
+</head>
+<body>
+    <header class="toolbar">
+        <h1>Resume Builder</h1>
+        <div class="toolbar-actions">
+            <button id="btn-import" class="btn btn-secondary">Import .tex</button>
+            <button id="btn-compile" class="btn btn-primary">Compile PDF</button>
+            <button id="btn-save" class="btn btn-secondary">Save</button>
+            <button id="btn-import-jd" class="btn btn-secondary">Import JD</button>
+            <button id="btn-toggle-vault" class="btn btn-secondary">Vault</button>
+            <span id="status-msg" class="status-msg"></span>
+        </div>
+    </header>
+
+    <main class="main-layout">
+        <section class="panel panel-active" id="panel-active">
+            <h2>Active Resume</h2>
+            <div id="active-tree" class="tree"></div>
+            <div id="active-empty" class="empty-state">
+                No entries yet. Import a .tex file or drag from Vault.
+            </div>
+        </section>
+
+        <section class="panel panel-preview" id="panel-preview">
+            <h2>PDF Preview</h2>
+            <iframe id="pdf-iframe" class="pdf-frame"></iframe>
+        </section>
+    </main>
+
+    <!-- Vault: dockable floating panel -->
+    <aside class="vault-panel" id="panel-vault">
+        <div class="vault-header">
+            <h3>Vault</h3>
+            <div class="vault-controls">
+                <button id="btn-close-vault" class="btn btn-small" title="Close Vault">X</button>
+            </div>
+        </div>
+        <div class="vault-body">
+            <div id="vault-tree" class="tree"></div>
+            <div id="vault-empty" class="empty-state">
+                No vault loaded. Click "Import .tex" to start.
+            </div>
+        </div>
+    </aside>
+
+    <!-- Inline edit modal -->
+    <div id="edit-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3 id="edit-modal-title">Edit</h3>
+            <textarea id="edit-textarea" rows="4"></textarea>
+            <div class="modal-actions">
+                <button id="edit-save" class="btn btn-primary">Save</button>
+                <button id="edit-cancel" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JD Analysis modal -->
+    <div id="jd-modal" class="modal hidden">
+        <div class="modal-content modal-wide">
+            <h3>Import Job Description</h3>
+            <div class="jd-url-row">
+                <input id="jd-url-input" type="url" class="jd-url-input" placeholder="Paste job posting URL...">
+                <button id="jd-fetch" class="btn btn-secondary">Fetch</button>
+            </div>
+            <textarea id="jd-textarea" rows="10" placeholder="Or paste job description text here..."></textarea>
+            <div class="modal-actions">
+                <button id="jd-analyze" class="btn btn-primary">Analyze</button>
+                <button id="jd-cancel" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JD Results panel (shows after analysis) -->
+    <div id="jd-results" class="jd-results-panel hidden">
+        <div class="jd-results-header">
+            <h3>JD Analysis</h3>
+            <div>
+                <button id="jd-clear" class="btn btn-small">Clear</button>
+                <button id="jd-close-results" class="btn btn-small">X</button>
+            </div>
+        </div>
+        <div id="jd-results-body" class="jd-results-body"></div>
+    </div>
+
+    <!-- Snap preview overlay (shown during vault drag) -->
+    <div id="snap-preview" class="snap-preview"></div>
+
+    <script src="/static/lib/Sortable.min.js"></script>
+    <script src="/static/js/api.js?v=8"></script>
+    <script src="/static/js/tree.js?v=8"></script>
+    <script src="/static/js/dragdrop.js?v=8"></script>
+    <script src="/static/js/editor.js?v=8"></script>
+    <script src="/static/js/preview.js?v=8"></script>
+    <script src="/static/js/vault.js?v=8"></script>
+    <script src="/static/js/history.js?v=8"></script>
+    <script src="/static/js/jd.js?v=8"></script>
+    <script src="/static/js/app.js?v=8"></script>
+</body>
+</html>

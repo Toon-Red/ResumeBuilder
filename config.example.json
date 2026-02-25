@@ -1,0 +1,8 @@
+{
+    "pdflatex_path": "pdflatex",
+    "source_dir": ".",
+    "data_dir": "data",
+    "output_dir": "output",
+    "template_dir": "data/templates",
+    "port": 5050
+}

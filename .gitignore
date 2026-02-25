@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
+.venv/
+venv/
+env/
+
+# User data (personal resume content)
+data/repertoire.json
+data/active/*.json
+
+# Compiled output
+output/*.pdf
+output/*.tex
+output/*.aux
+output/*.log
+output/*.out
+
+# Config (contains local paths)
+config.json
+
+# LaTeX artifacts
+*.aux
+*.log
+*.out
+*.synctex.gz
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Pytest
+.pytest_cache/
