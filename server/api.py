@@ -431,6 +431,18 @@ def clear_tweak(target_id: str):
     return {"ok": True}
 
 
+@app.post("/api/active/tweaks/{target_id}/commit")
+def commit_tweak(target_id: str):
+    """Commit a tweak to the vault — saves tweaked text permanently."""
+    a = _load_active()
+    r = _load_rep()
+    if not active_ops.commit_tweak(a, r, target_id):
+        raise HTTPException(404, "Target not found or no tweak to commit")
+    _save_rep(r)
+    _save_active(a)
+    return {"ok": True}
+
+
 @app.get("/api/active/tweaks")
 def list_tweaks():
     """List all active tweaks."""

@@ -130,6 +130,20 @@ const Tree = {
         dateSpan.textContent = this._cleanLatex(title.arg2 || '');
         header.appendChild(dateSpan);
 
+        if (mode === 'active' && title.tweaked) {
+            const saveBtn = document.createElement('button');
+            saveBtn.className = 'btn-save';
+            saveBtn.textContent = '\ud83d\udcbe';
+            saveBtn.title = 'Save tweak to vault';
+            saveBtn.onclick = async (e) => {
+                e.stopPropagation();
+                await API.commitTweak(title.id);
+                App.refresh();
+                App.showStatus('Saved to vault');
+            };
+            header.appendChild(saveBtn);
+        }
+
         if (mode === 'active') {
             const removeBtn = document.createElement('button');
             removeBtn.className = 'btn-remove';
@@ -226,6 +240,20 @@ const Tree = {
         textSpan.className = 'item-text';
         textSpan.textContent = this._cleanLatex(item.text || '');
         el.appendChild(textSpan);
+
+        if (mode === 'active' && item.tweaked) {
+            const saveBtn = document.createElement('button');
+            saveBtn.className = 'btn-save';
+            saveBtn.textContent = '\ud83d\udcbe';
+            saveBtn.title = 'Save tweak to vault';
+            saveBtn.onclick = async (e) => {
+                e.stopPropagation();
+                await API.commitTweak(item.id);
+                App.refresh();
+                App.showStatus('Saved to vault');
+            };
+            el.appendChild(saveBtn);
+        }
 
         if (mode === 'active') {
             const removeBtn = document.createElement('button');

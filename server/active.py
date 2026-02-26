@@ -16,6 +16,7 @@ from .models import (
     Repertoire,
 )
 from .repertoire import find_item, find_section, find_title
+from .versioning import snapshot_item, snapshot_title
 
 
 # --- Add references ---
@@ -242,6 +243,48 @@ def get_all_tweaks(active: ActiveResume) -> list[dict]:
                         "value": item_ref.tweak,
                     })
     return tweaks
+
+
+def commit_tweak(
+    active: ActiveResume, repertoire: Repertoire, target_id: str
+) -> bool:
+    """Commit a tweak to the vault — copies tweaked values into the
+    repertoire item/title and clears the tweak from the active ref.
+
+    Snapshots the old vault state first for version history.
+    """
+    for section_ref in active.sections:
+        for title_ref in section_ref.titles:
+            if title_ref.title_id == target_id:
+                result = find_title(repertoire, target_id)
+                if not result:
+                    return False
+                _, title = result
+                snapshot_title(title, label="before commit tweak")
+                if title_ref.tweak_arg1 is not None:
+                    title.arg1 = title_ref.tweak_arg1
+                if title_ref.tweak_arg2 is not None:
+                    title.arg2 = title_ref.tweak_arg2
+                if title_ref.tweak_arg3 is not None:
+                    title.arg3 = title_ref.tweak_arg3
+                if title_ref.tweak_arg4 is not None:
+                    title.arg4 = title_ref.tweak_arg4
+                title_ref.tweak_arg1 = None
+                title_ref.tweak_arg2 = None
+                title_ref.tweak_arg3 = None
+                title_ref.tweak_arg4 = None
+                return True
+            for item_ref in title_ref.items:
+                if item_ref.item_id == target_id:
+                    result = find_item(repertoire, target_id)
+                    if not result:
+                        return False
+                    _, item = result
+                    snapshot_item(item, label="before commit tweak")
+                    item.text = item_ref.tweak
+                    item_ref.tweak = None
+                    return True
+    return False
 
 
 def resolve_active(active: ActiveResume, repertoire: Repertoire) -> list[dict]:

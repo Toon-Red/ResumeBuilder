@@ -118,6 +118,9 @@ const API = {
     clearTweak(targetId) {
         return this._fetch(`/api/active/tweaks/${targetId}`, { method: 'DELETE' });
     },
+    commitTweak(targetId) {
+        return this._fetch(`/api/active/tweaks/${targetId}/commit`, { method: 'POST' });
+    },
     getTweaks() { return this._fetch('/api/active/tweaks'); },
 
     // Compile

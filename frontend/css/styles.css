@@ -294,6 +294,17 @@ body {
 .btn-add:hover { color: var(--success); }
 .btn-remove:hover { color: var(--danger); }
 
+.btn-save {
+    font-size: 14px;
+    padding: 0 3px;
+    line-height: 1.2;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--grey);
+}
+.btn-save:hover { color: var(--success); }
+
 /* Tweaked indicator */
 .tweaked {
     background: var(--tweak-bg) !important;

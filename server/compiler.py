@@ -208,11 +208,15 @@ def _render_standard(section_data: dict) -> str:
         # Determine if it's a 2-arg (project heading) or 4-arg (subheading)
         has_arg3_or_4 = title.get("arg3") or title.get("arg4")
         if has_arg3_or_4:
+            arg4 = title.get("arg4", "")
             lines.append("\\resumeSubheading")
             lines.append(f"{{{title['arg1']}}}")
             lines.append(f"{{{title['arg2']}}}")
             lines.append(f"{{{title['arg3']}}}")
-            lines.append(f"{{{title['arg4']}}}")
+            if len(arg4) > 45:
+                lines.append(f"{{\\scriptsize {arg4}}}")
+            else:
+                lines.append(f"{{{arg4}}}")
         else:
             lines.append("\\resumeProjectHeading")
             lines.append(f"{{{title['arg1']}}}{{{title['arg2']}}}")
