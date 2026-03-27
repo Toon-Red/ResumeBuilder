@@ -30,8 +30,22 @@ from .models import (
 )
 from .storage import load_active, load_repertoire, save_active, save_repertoire
 
-app = FastAPI(title="Resume Builder", version="1.0.0")
+from version import __version__, DEV_MODE
+
+app = FastAPI(title="Resume Builder", version=__version__)
 app.include_router(jd_router)
+
+# Lazy-import updater to avoid circular imports during testing
+_update_manager = None
+
+
+def _get_update_manager():
+    global _update_manager
+    if _update_manager is None:
+        from updater import update_manager
+        _update_manager = update_manager
+    return _update_manager
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -50,6 +64,13 @@ app.mount("/static", StaticFiles(directory=str(_frontend_dir)), name="static")
 def serve_index():
     """Serve the frontend index.html."""
     return FileResponse(str(_frontend_dir / "index.html"))
+
+
+@app.get("/api/health")
+def health():
+    """Health check endpoint for CI smoke tests."""
+    return {"status": "ok", "version": __version__, "dev_mode": DEV_MODE}
+
 
 # Paths - set by init_app()
 _data_dir: Path = Path("data")
@@ -650,3 +671,55 @@ def _auto_build_active(repertoire: Repertoire) -> ActiveResume:
             section_ref.titles.append(title_ref)
         active.sections.append(section_ref)
     return active
+
+
+# ============================================================
+# Update (self-updater endpoints)
+# ============================================================
+
+@app.get("/api/update/check")
+def update_check():
+    """Check GitHub for a newer release."""
+    from updater import get_latest_release, get_current_version, is_newer, is_update_staged, get_staged_version
+    current = get_current_version()
+    release = get_latest_release()
+    if not release:
+        return {"update_available": False, "current_version": current}
+    available = is_newer(release["version"], current)
+    return {
+        "update_available": available,
+        "current_version": current,
+        "latest_version": release["version"],
+        "exe_url": release.get("exe_url"),
+        "notes": release.get("notes", ""),
+        "name": release.get("name", ""),
+        "staged": is_update_staged(),
+        "staged_version": get_staged_version(),
+    }
+
+
+@app.post("/api/update/download")
+def update_download(body: dict):
+    """Start downloading an update in the background."""
+    url = body.get("url")
+    version = body.get("version")
+    if not url or not version:
+        raise HTTPException(400, "url and version required")
+    mgr = _get_update_manager()
+    started = mgr.start_download(url, version)
+    return {"started": started}
+
+
+@app.get("/api/update/status")
+def update_status():
+    """Get download progress."""
+    mgr = _get_update_manager()
+    return mgr.get_status()
+
+
+@app.post("/api/update/apply")
+def update_apply():
+    """Apply staged update and restart."""
+    from updater import apply_update_and_restart
+    apply_update_and_restart()
+    return {"ok": True}

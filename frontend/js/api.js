@@ -178,4 +178,19 @@ const API = {
             method: 'POST', body: JSON.stringify({ label }),
         });
     },
+
+    // Update
+    checkForUpdate() { return this._fetch('/api/update/check'); },
+    downloadUpdate(url, version) {
+        return this._fetch('/api/update/download', {
+            method: 'POST', body: JSON.stringify({ url, version }),
+        });
+    },
+    getUpdateStatus() { return this._fetch('/api/update/status'); },
+    applyUpdate() {
+        return this._fetch('/api/update/apply', { method: 'POST' });
+    },
+
+    // Health
+    health() { return this._fetch('/api/health'); },
 };

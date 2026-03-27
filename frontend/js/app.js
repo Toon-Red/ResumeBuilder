@@ -12,8 +12,12 @@ const App = {
         document.getElementById('btn-import').onclick = () => this.importTex();
         document.getElementById('btn-compile').onclick = () => this.compile();
         document.getElementById('btn-save').onclick = () => this.save();
+        document.getElementById('update-dismiss').onclick = () => {
+            document.getElementById('update-banner').style.display = 'none';
+        };
 
         await this.refresh();
+        this.checkForAppUpdate();
     },
 
     async refresh() {
@@ -170,6 +174,88 @@ const App = {
         el.className = 'status-msg' + (type ? ' ' + type : '');
         if (type === 'success') {
             setTimeout(() => { el.textContent = ''; }, 3000);
+        }
+    },
+
+    // --- Update management ---
+
+    _updateInfo: null,
+
+    async checkForAppUpdate() {
+        try {
+            const data = await API.checkForUpdate();
+            if (data.staged) {
+                this._showUpdateBanner(
+                    `Update v${data.staged_version} ready to install`,
+                    'Restart Now', () => this.applyAppUpdate()
+                );
+            } else if (data.update_available) {
+                this._updateInfo = data;
+                this._showUpdateBanner(
+                    `Update available: v${data.latest_version}`,
+                    'Download', () => this.downloadAppUpdate()
+                );
+            }
+        } catch (err) {
+            // Silently ignore — update check is best-effort
+            console.log('Update check skipped:', err.message);
+        }
+    },
+
+    async downloadAppUpdate() {
+        if (!this._updateInfo || !this._updateInfo.exe_url) return;
+        try {
+            await API.downloadUpdate(this._updateInfo.exe_url, this._updateInfo.latest_version);
+            this._showUpdateBanner('Downloading update...', null, null);
+            this._pollDownload();
+        } catch (err) {
+            this._showUpdateBanner('Download failed: ' + err.message, null, null);
+        }
+    },
+
+    _pollDownload() {
+        const poll = async () => {
+            try {
+                const status = await API.getUpdateStatus();
+                if (status.downloading) {
+                    const pct = status.progress >= 0 ? ` ${status.progress}%` : '';
+                    this._showUpdateBanner(`Downloading update...${pct}`, null, null);
+                    setTimeout(poll, 1000);
+                } else if (status.error) {
+                    this._showUpdateBanner('Download failed: ' + status.error, null, null);
+                } else if (status.staged) {
+                    this._showUpdateBanner(
+                        `Update v${status.staged_version} ready to install`,
+                        'Restart Now', () => this.applyAppUpdate()
+                    );
+                }
+            } catch (err) {
+                console.error('Poll error:', err);
+            }
+        };
+        setTimeout(poll, 1000);
+    },
+
+    async applyAppUpdate() {
+        try {
+            await API.applyUpdate();
+        } catch (err) {
+            // App may have exited already — that's expected
+        }
+    },
+
+    _showUpdateBanner(text, btnLabel, btnAction) {
+        const banner = document.getElementById('update-banner');
+        const textEl = document.getElementById('update-text');
+        const btn = document.getElementById('update-action-btn');
+        textEl.textContent = text;
+        banner.style.display = 'flex';
+        if (btnLabel && btnAction) {
+            btn.textContent = btnLabel;
+            btn.style.display = '';
+            btn.onclick = btnAction;
+        } else {
+            btn.style.display = 'none';
         }
     },
 };

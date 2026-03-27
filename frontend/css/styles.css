@@ -96,6 +96,22 @@ body {
 }
 .btn-icon:hover { background: var(--blue-dim); }
 
+/* Update Banner */
+#update-banner {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 16px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--accent);
+    font-size: 13px;
+    color: var(--accent);
+    flex-shrink: 0;
+}
+
+#update-banner #update-text { flex: 1; }
+#update-banner .btn { flex-shrink: 0; }
+
 /* ============================================================
    Main Layout: Active (left) + PDF Preview (right)
    ============================================================ */
