@@ -1,0 +1,9 @@
+{
+  "name": "Resume Builder",
+  "app_id": "ResumeBuilder.1.0",
+  "template_type": "desktop_app",
+  "port": 5050,
+  "exe_name": "ResumeBuilder.exe",
+  "install_dir": "%LOCALAPPDATA%/ResumeBuilder",
+  "health_endpoint": "/api/health"
+}
