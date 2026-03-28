@@ -15,8 +15,9 @@ from server.models import (
     SectionType,
 )
 
-TEMPLATE_DIR = Path(r"C:\Users\prest\Desktop\code\ResumeBuilder\data\templates")
-OUTPUT_DIR = Path(r"C:\Users\prest\Desktop\code\ResumeBuilder\output")
+_PROJECT_ROOT = Path(__file__).parent.parent
+TEMPLATE_DIR = _PROJECT_ROOT / "data" / "templates"
+OUTPUT_DIR = _PROJECT_ROOT / "output"
 
 
 def _make_test_data():

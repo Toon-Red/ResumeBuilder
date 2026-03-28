@@ -17,7 +17,7 @@ def setup_app(tmp_path):
 
     template_dir = tmp_path / "templates"
     template_dir.mkdir()
-    real_template = Path(r"C:\Users\prest\Desktop\code\ResumeBuilder\data\templates")
+    real_template = Path(__file__).parent.parent / "data" / "templates"
     for f in ["preamble.tex", "custom-commands.tex"]:
         src = real_template / f
         if src.exists():

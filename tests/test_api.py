@@ -1,6 +1,7 @@
 """Tests for API endpoints."""
 
 import json
+import os
 import pytest
 from pathlib import Path
 from fastapi.testclient import TestClient
@@ -18,7 +19,7 @@ def setup_app(tmp_path):
     # Copy templates
     template_dir = tmp_path / "templates"
     template_dir.mkdir()
-    real_template = Path(r"C:\Users\prest\Desktop\code\ResumeBuilder\data\templates")
+    real_template = Path(__file__).parent.parent / "data" / "templates"
     for f in ["preamble.tex", "custom-commands.tex"]:
         src = real_template / f
         if src.exists():
@@ -127,7 +128,7 @@ def test_tweaks(client):
 
 
 @pytest.mark.skipif(
-    not Path(r"C:\Users\prest\Desktop\Flash\AMZ Template Brendan\resume.tex").exists(),
+    not (Path(os.environ.get("RESUME_SOURCE_DIR", r"C:\nonexistent")) / "resume.tex").exists(),
     reason="Source .tex not available",
 )
 def test_import_tex(client):
