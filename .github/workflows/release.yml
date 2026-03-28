@@ -20,7 +20,9 @@ jobs:
           VERSION=${GITHUB_REF#refs/tags/v}
           printf '__version__ = "%s"\nDEV_MODE = False\n' "$VERSION" > version.py
       - name: Build exe
-        run: pyinstaller --onefile --name ResumeBuilder --add-data "frontend;frontend" --add-data "data;data" run_server.py
+        run: |
+          cp config.example.json config.json
+          pyinstaller --onefile --name ResumeBuilder --add-data "frontend;frontend" --add-data "data;data" --add-data "config.json;." run_server.py
       - name: Smoke test
         shell: bash
         run: |
