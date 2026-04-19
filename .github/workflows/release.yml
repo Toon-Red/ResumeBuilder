@@ -13,7 +13,7 @@ jobs:
         with:
           python-version: '3.14'
       - name: Install deps
-        run: pip install -r requirements.txt pyinstaller
+        run: pip install -r requirements.txt pyinstaller pythonnet pywin32
       - name: Set version
         shell: bash
         run: |
@@ -22,12 +22,12 @@ jobs:
       - name: Build exe
         run: |
           cp config.example.json config.json
-          pyinstaller --onefile --name ResumeBuilder --add-data "frontend;frontend" --add-data "data;data" --add-data "config.json;." run_server.py
+          pyinstaller --onefile --name ResumeBuilder --noconsole --add-data "frontend;frontend" --add-data "data;data" --add-data "config.json;." --hidden-import server --hidden-import server.api --hidden-import server.models --hidden-import server.storage --hidden-import server.importer --hidden-import server.compiler --hidden-import server.repertoire --hidden-import server.active --hidden-import server.versioning --hidden-import server.jd_analyzer --hidden-import server.jd_scraper --hidden-import server.jd_routes launcher.py
       - name: Smoke test
         shell: bash
         run: |
           cp config.example.json config.json
-          ./dist/ResumeBuilder.exe &
+          ./dist/ResumeBuilder.exe --server-only &
           EXE_PID=$!
           for i in $(seq 1 60); do
             if ! kill -0 $EXE_PID 2>/dev/null; then echo "FAIL: died"; exit 1; fi

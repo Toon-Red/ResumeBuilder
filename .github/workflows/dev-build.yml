@@ -2,8 +2,23 @@ name: Dev Build
 on:
   push:
     branches-ignore: [master]
+    paths:
+      - '**.py'
+      - '**.js'
+      - '**.html'
+      - '**.css'
+      - 'requirements.txt'
+      - 'build.spec'
+      - 'pipeline.json'
+      - 'version_info.txt'
+      - '.github/workflows/**'
 permissions:
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -25,7 +40,7 @@ jobs:
         with:
           python-version: '3.14'
       - name: Install deps
-        run: pip install -r requirements.txt pyinstaller
+        run: pip install -r requirements.txt pyinstaller pythonnet pywin32
       - name: Set dev version
         shell: bash
         run: |
@@ -33,7 +48,10 @@ jobs:
           BRANCH=$(echo "$GITHUB_REF_NAME" | sed 's/[^a-zA-Z0-9_-]/-/g')
           printf '__version__ = "0.0.0-dev+%s.%s"\nDEV_MODE = True\n' "$BRANCH" "$SHORT_SHA" > version.py
       - name: Build exe
-        run: pyinstaller --onefile --name ResumeBuilder --add-data "frontend;frontend" --add-data "data;data" run_server.py
+        shell: bash
+        run: |
+          cp config.example.json config.json
+          pyinstaller --onefile --name ResumeBuilder --noconsole --add-data "frontend;frontend" --add-data "data;data" --add-data "config.json;." --hidden-import server --hidden-import server.api --hidden-import server.models --hidden-import server.storage --hidden-import server.importer --hidden-import server.compiler --hidden-import server.repertoire --hidden-import server.active --hidden-import server.versioning --hidden-import server.jd_analyzer --hidden-import server.jd_scraper --hidden-import server.jd_routes launcher.py
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
