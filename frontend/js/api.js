@@ -132,6 +132,12 @@ const API = {
     // Import/Export
     importTex() { return this._fetch('/api/import/tex', { method: 'POST' }); },
     exportTex() { return this._fetch('/api/export/tex'); },
+
+    // Named saves
+    listSaves() { return this._fetch('/api/resume/saves'); },
+    saveToFile(name) { return this._fetch(`/api/resume/saves/${encodeURIComponent(name)}`, { method: 'POST' }); },
+    loadFromFile(name) { return this._fetch(`/api/resume/load/${encodeURIComponent(name)}`, { method: 'POST' }); },
+    deleteSave(name) { return this._fetch(`/api/resume/saves/${encodeURIComponent(name)}`, { method: 'DELETE' }); },
     async exportPdf() {
         const resp = await fetch(this.base + '/api/export/pdf', { method: 'POST' });
         if (!resp.ok) {

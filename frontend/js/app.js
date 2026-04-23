@@ -13,6 +13,8 @@ const App = {
         document.getElementById('btn-compile').onclick = () => this.compile();
         document.getElementById('btn-export-pdf').onclick = () => this.exportPdf();
         document.getElementById('btn-save').onclick = () => this.save();
+        document.getElementById('btn-save-file').onclick = () => this.saveToFile();
+        document.getElementById('btn-load-file').onclick = () => this.loadFromFile();
         document.getElementById('update-dismiss').onclick = () => {
             document.getElementById('update-banner').style.display = 'none';
         };
@@ -81,6 +83,40 @@ const App = {
             this.showStatus('PDF downloaded', 'success');
         } catch (err) {
             this.showStatus('Export failed: ' + err.message, 'error');
+        }
+    },
+
+    async saveToFile() {
+        const name = window.prompt('Save as (name for this resume file):', 'my_resume');
+        if (!name) return;
+        this.showStatus('Saving...', '');
+        try {
+            const result = await API.saveToFile(name.trim());
+            this.showStatus(`Saved as "${result.name}"`, 'success');
+        } catch (err) {
+            this.showStatus('Save failed: ' + err.message, 'error');
+        }
+    },
+
+    async loadFromFile() {
+        try {
+            const { saves } = await API.listSaves();
+            if (!saves.length) {
+                this.showStatus('No saved files found. Use "Save As…" first.', 'error');
+                return;
+            }
+            const names = saves.map(s => s.name);
+            const choice = window.prompt(
+                'Available saves:\n' + names.map((n, i) => `${i + 1}. ${n}`).join('\n') + '\n\nEnter name to load:',
+                names[0]
+            );
+            if (!choice) return;
+            this.showStatus('Loading...', '');
+            const result = await API.loadFromFile(choice.trim());
+            this.showStatus(`Loaded "${result.name}" (${result.sections} sections)`, 'success');
+            await this.refresh();
+        } catch (err) {
+            this.showStatus('Load failed: ' + err.message, 'error');
         }
     },
 

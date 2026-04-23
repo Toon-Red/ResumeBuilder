@@ -581,6 +581,85 @@ def export_tex():
 
 
 # ============================================================
+# Local file save / load (named JSON bundles)
+# ============================================================
+
+def _saves_dir() -> Path:
+    """Persistent saves directory — survives app reinstalls."""
+    localappdata = Path.home() / "AppData" / "Local"
+    d = localappdata / "ResumeBuilder" / "saves"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+@app.get("/api/resume/saves")
+def list_resume_saves():
+    """List available named resume saves."""
+    saves = []
+    for f in sorted(_saves_dir().glob("*.json")):
+        stat = f.stat()
+        saves.append({
+            "name": f.stem,
+            "filename": f.name,
+            "saved_at": stat.st_mtime,
+            "size_bytes": stat.st_size,
+        })
+    return {"saves": saves}
+
+
+@app.post("/api/resume/saves/{name}")
+def save_resume_file(name: str):
+    """Save current repertoire + active state as a named JSON bundle."""
+    safe_name = "".join(c for c in name if c.isalnum() or c in "-_ ")[:64].strip()
+    if not safe_name:
+        raise HTTPException(400, "Invalid save name")
+    a = _load_active()
+    r = _load_rep()
+    bundle = {
+        "version": 1,
+        "name": safe_name,
+        "repertoire": json.loads(r.model_dump_json()),
+        "active": json.loads(a.model_dump_json()),
+    }
+    save_path = _saves_dir() / f"{safe_name}.json"
+    save_path.write_text(json.dumps(bundle, indent=2, ensure_ascii=False), encoding="utf-8")
+    return {"ok": True, "name": safe_name, "path": str(save_path)}
+
+
+@app.post("/api/resume/load/{name}")
+def load_resume_file(name: str):
+    """Restore repertoire + active state from a named JSON bundle."""
+    save_path = _saves_dir() / f"{name}.json"
+    if not save_path.exists():
+        raise HTTPException(404, f"Save '{name}' not found")
+    bundle = json.loads(save_path.read_text(encoding="utf-8"))
+    version = bundle.get("version", 1)
+    if version != 1:
+        raise HTTPException(400, f"Unsupported bundle version: {version}")
+
+    from .storage import save_repertoire, save_active
+    rep = Repertoire.model_validate(bundle["repertoire"])
+    active = ActiveResume.model_validate(bundle["active"])
+    save_repertoire(rep, _rep_path())
+    save_active(active, _active_path())
+    return {
+        "ok": True,
+        "name": bundle.get("name", name),
+        "sections": len(rep.sections),
+    }
+
+
+@app.delete("/api/resume/saves/{name}")
+def delete_resume_save(name: str):
+    """Delete a named save file."""
+    save_path = _saves_dir() / f"{name}.json"
+    if not save_path.exists():
+        raise HTTPException(404, f"Save '{name}' not found")
+    save_path.unlink()
+    return {"ok": True}
+
+
+# ============================================================
 # Tailoring (Claude Code CLI)
 # ============================================================
 
