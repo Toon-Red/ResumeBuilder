@@ -134,6 +134,8 @@ const API = {
     exportTex() { return this._fetch('/api/export/tex'); },
 
     // Named saves
+    listTemplates() { return this._fetch('/api/templates'); },
+    applyTemplate(id) { return this._fetch(`/api/templates/${encodeURIComponent(id)}/apply`, { method: 'POST' }); },
     listSaves() { return this._fetch('/api/resume/saves'); },
     saveToFile(name) { return this._fetch(`/api/resume/saves/${encodeURIComponent(name)}`, { method: 'POST' }); },
     loadFromFile(name) { return this._fetch(`/api/resume/load/${encodeURIComponent(name)}`, { method: 'POST' }); },

@@ -9,6 +9,7 @@ const App = {
         JD.init();
         History.init();
 
+        document.getElementById('btn-new-from-template').onclick = () => this.newFromTemplate();
         document.getElementById('btn-import').onclick = () => this.importTex();
         document.getElementById('btn-compile').onclick = () => this.compile();
         document.getElementById('btn-export-pdf').onclick = () => this.exportPdf();
@@ -73,6 +74,30 @@ const App = {
             }
         } catch (err) {
             this.showStatus('Compile error: ' + err.message, 'error');
+        }
+    },
+
+    async newFromTemplate() {
+        try {
+            const data = await API.listTemplates();
+            const templates = data.templates || [];
+            if (!templates.length) { this.showStatus('No templates available', 'error'); return; }
+            const lines = templates.map((t, i) => `${i + 1}. ${t.name} — ${t.description}`);
+            const choice = window.prompt(
+                'Choose a template:\n\n' + lines.join('\n') + '\n\nEnter number:'
+            );
+            if (!choice) return;
+            const idx = parseInt(choice.trim(), 10) - 1;
+            if (idx < 0 || idx >= templates.length) { this.showStatus('Invalid choice', 'error'); return; }
+            const tid = templates[idx].id;
+            if (!window.confirm(`Apply template "${templates[idx].name}"? This will add sections to your repertoire.`)) return;
+            this.showStatus('Applying template…', '');
+            const result = await API.applyTemplate(tid);
+            this.showStatus(`Template "${templates[idx].name}" applied — ${result.sections_added} section(s) added`, 'success');
+            await State.load();
+            Render.all();
+        } catch (err) {
+            this.showStatus('Template error: ' + err.message, 'error');
         }
     },
 

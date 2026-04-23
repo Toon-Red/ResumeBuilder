@@ -660,6 +660,50 @@ def delete_resume_save(name: str):
 
 
 # ============================================================
+# Section template library
+# ============================================================
+
+@app.get("/api/templates")
+def list_section_templates():
+    """List available resume section templates."""
+    from .templates import list_templates
+    return {"templates": list_templates()}
+
+
+@app.get("/api/templates/{template_id}")
+def get_section_template(template_id: str):
+    """Get a single template definition including section names."""
+    from .templates import get_template
+    tmpl = get_template(template_id)
+    if not tmpl:
+        raise HTTPException(404, f"Template '{template_id}' not found")
+    return tmpl
+
+
+@app.post("/api/templates/{template_id}/apply")
+def apply_section_template(template_id: str):
+    """Apply a template: populate repertoire and active resume from the template.
+
+    Existing repertoire content is preserved; template sections are appended.
+    """
+    from .templates import apply_template
+    r = _load_rep()
+    a = _load_active()
+    try:
+        r, a = apply_template(template_id, r, a)
+    except ValueError as e:
+        raise HTTPException(404, str(e))
+    _save_rep(r)
+    _save_active(a)
+    return {
+        "applied": template_id,
+        "sections_added": len(r.sections),
+        "repertoire": r.model_dump(),
+        "active": a.model_dump(),
+    }
+
+
+# ============================================================
 # Tailoring (Claude Code CLI)
 # ============================================================
 
