@@ -11,10 +11,19 @@ const App = {
 
         document.getElementById('btn-import').onclick = () => this.importTex();
         document.getElementById('btn-compile').onclick = () => this.compile();
+        document.getElementById('btn-export-pdf').onclick = () => this.exportPdf();
         document.getElementById('btn-save').onclick = () => this.save();
         document.getElementById('update-dismiss').onclick = () => {
             document.getElementById('update-banner').style.display = 'none';
         };
+
+        // Ctrl+S saves PDF to Downloads
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                this.save();
+            }
+        });
 
         await this.refresh();
         this.checkForAppUpdate();
@@ -65,8 +74,27 @@ const App = {
         }
     },
 
+    async exportPdf() {
+        this.showStatus('Compiling and downloading...', '');
+        try {
+            await API.exportPdf();
+            this.showStatus('PDF downloaded', 'success');
+        } catch (err) {
+            this.showStatus('Export failed: ' + err.message, 'error');
+        }
+    },
+
     async save() {
-        this.showStatus('Saved', 'success');
+        try {
+            const result = await API.savePdf();
+            if (result.ok) {
+                this.showStatus('Saved to ' + result.path, 'success');
+            } else {
+                this.showStatus('Save failed: ' + (result.detail || 'Unknown error'), 'error');
+            }
+        } catch (err) {
+            this.showStatus('Save error: ' + err.message, 'error');
+        }
     },
 
     // --- Active resume mutations ---

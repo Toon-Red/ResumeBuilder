@@ -493,6 +493,27 @@ def preview_pdf():
     return FileResponse(pdf_path, media_type="application/pdf")
 
 
+@app.post("/api/compile/save")
+def save_pdf(body: dict = None):
+    """Save the compiled PDF to the user's Downloads folder (or custom path)."""
+    import shutil
+    pdf_path = _output_dir / "resume.pdf"
+    if not pdf_path.exists():
+        raise HTTPException(404, "No compiled PDF found. Compile first.")
+
+    # Default to Downloads folder
+    downloads = Path.home() / "Downloads"
+    if body and body.get("dest"):
+        dest_dir = Path(body["dest"])
+    else:
+        dest_dir = downloads
+
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    dest = dest_dir / "resume.pdf"
+    shutil.copy2(pdf_path, dest)
+    return {"ok": True, "path": str(dest)}
+
+
 @app.get("/api/compile/tex")
 def get_tex():
     """Get the generated .tex source."""
@@ -530,6 +551,24 @@ def import_from_tex():
         "titles": title_count,
         "items": item_count,
     }
+
+
+@app.post("/api/export/pdf")
+def export_pdf():
+    """Compile active resume and return as a downloadable PDF file."""
+    a = _load_active()
+    r = _load_rep()
+    result = compile_pdf(a, r, _template_dir, _output_dir, _pdflatex_path)
+    if not result.success:
+        raise HTTPException(500, result.error or "PDF compilation failed")
+    pdf_path = _output_dir / "resume.pdf"
+    if not pdf_path.exists():
+        raise HTTPException(500, "PDF file not found after compilation")
+    return FileResponse(
+        pdf_path,
+        media_type="application/pdf",
+        headers={"Content-Disposition": 'attachment; filename="resume.pdf"'},
+    )
 
 
 @app.get("/api/export/tex")

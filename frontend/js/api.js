@@ -127,10 +127,27 @@ const API = {
     compile() { return this._fetch('/api/compile', { method: 'POST' }); },
     getPreviewUrl() { return this.base + '/api/compile/preview'; },
     getTex() { return this._fetch('/api/compile/tex'); },
+    savePdf(dest) { return this._fetch('/api/compile/save', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(dest ? {dest} : {}) }); },
 
     // Import/Export
     importTex() { return this._fetch('/api/import/tex', { method: 'POST' }); },
     exportTex() { return this._fetch('/api/export/tex'); },
+    async exportPdf() {
+        const resp = await fetch(this.base + '/api/export/pdf', { method: 'POST' });
+        if (!resp.ok) {
+            const err = await resp.json().catch(() => ({ detail: 'Export failed' }));
+            throw new Error(err.detail || 'PDF export failed');
+        }
+        const blob = await resp.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'resume.pdf';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    },
 
     // Tailoring
     getTailorState() { return this._fetch('/api/tailor/state'); },
